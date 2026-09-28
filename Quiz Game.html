@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quiz Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f8;--card:#fff;--ink:#1b2340;--mute:#5d6688;--line:#d5dbec;--acc:#3d5afe;--acc-t:#e3e8ff;--ok:#1f9d6b;--ok-t:#dcf5ea;--bad:#d64550;--bad-t:#fde4e6;--hi:#ffc93c;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a30;--card:#1e2645;--ink:#eef1ff;--mute:#a3add0;--line:#34406b;--acc:#7c92ff;--acc-t:#2b3670;--ok:#4cd39b;--ok-t:#17423a;--bad:#ff7b85;--bad-t:#4a2432}}
+:root[data-theme="dark"]{--bg:#141a30;--card:#1e2645;--ink:#eef1ff;--mute:#a3add0;--line:#34406b;--acc:#7c92ff;--acc-t:#2b3670;--ok:#4cd39b;--ok-t:#17423a;--bad:#ff7b85;--bad-t:#4a2432}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5;min-height:100vh;display:flex;justify-content:center;padding:20px 16px}
+main{width:100%;max-width:640px}
+h1{font-size:clamp(2.4rem,9vw,3.6rem);line-height:1;font-weight:800;letter-spacing:-.03em;margin:.4em 0 .3em}
+h2{font-size:1.5rem;line-height:1.25;font-weight:600;margin:0 0 18px;letter-spacing:-.01em}
+p{margin:0 0 1em;color:var(--mute)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:24px}
+.hidden{display:none}
+.btn{font:inherit;font-weight:600;background:var(--acc);color:#fff;border:0;border-radius:12px;padding:13px 26px;cursor:pointer;font-size:1rem}
+[data-theme="dark"] .btn,:root:not([data-theme="light"]) .btn{color:#10163a}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .btn{color:#fff}}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+button:focus-visible,input:focus-visible,.opt:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.stack{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.picker{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 22px}
+.chip{font:inherit;font-weight:600;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 16px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--acc-t);border-color:var(--acc)}
+.bar{height:8px;background:var(--line);border-radius:8px;overflow:hidden;margin-bottom:8px}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .3s}
+.meta{display:flex;justify-content:space-between;font-size:.9rem;color:var(--mute);margin-bottom:16px}
+.tag{font-weight:600;color:var(--acc)}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--acc)}
+.opt .mk{flex:none;width:22px;height:22px;border:2px solid var(--mute);border-radius:50%;display:grid;place-items:center;font-size:.8rem;font-weight:800}
+.opt.multi .mk{border-radius:6px}
+.opt.sel{background:var(--acc-t);border-color:var(--acc)}
+.opt.sel .mk{background:var(--acc);border-color:var(--acc);color:#fff}
+.opt.ok{background:var(--ok-t);border-color:var(--ok)}
+.opt.bad{background:var(--bad-t);border-color:var(--bad)}
+.opt.ok .mk{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.bad .mk{background:var(--bad);border-color:var(--bad);color:#fff}
+input.fill{width:100%;font:inherit;font-size:1.1rem;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;padding:13px 14px}
+input.fill.ok{border-color:var(--ok);background:var(--ok-t)}
+input.fill.bad{border-color:var(--bad);background:var(--bad-t)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:12px;font-weight:400}
+.fb b{display:block;margin-bottom:2px}
+.fb.ok{background:var(--ok-t);border-left:5px solid var(--ok)}
+.fb.bad{background:var(--bad-t);border-left:5px solid var(--bad)}
+.score{font-size:clamp(3.5rem,18vw,6rem);font-weight:800;letter-spacing:-.04em;line-height:1}
+.score small{font-size:.35em;color:var(--mute);font-weight:600;letter-spacing:0}
+.rev{list-style:none;padding:0;margin:20px 0 0}
+.rev li{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:.95rem}
+.rev .d{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:.8rem}
+.rev .d.ok{background:var(--ok)}.rev .d.bad{background:var(--bad)}
+.rev span{color:var(--mute);display:block;font-size:.88rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <section id="start">
+    <h1>Quiz Game</h1>
+    <p>Ten questions, four question types: single choice, multi select, true or false, and fill in the blank.</p>
+    <div class="card">
+      <h2>Choose a topic</h2>
+      <div class="picker" id="picker"></div>
+      <button class="btn" id="go">Start quiz</button>
+    </div>
+  </section>
+
+  <section id="play" class="hidden">
+    <div class="bar"><i id="prog"></i></div>
+    <div class="meta"><span id="count"></span><span>Score: <b id="pts">0</b></span></div>
+    <div class="card">
+      <div class="tag" id="kind"></div>
+      <h2 id="q"></h2>
+      <div id="body"></div>
+      <div id="fb"></div>
+      <div class="stack">
+        <button class="btn" id="check" disabled>Check answer</button>
+        <button class="btn hidden" id="next">Next question</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="end" class="hidden">
+    <div class="card">
+      <div class="score"><span id="final"></span><small> / <span id="total"></span></small></div>
+      <h2 id="verdict" style="margin-top:12px"></h2>
+      <div class="stack"><button class="btn" id="again">Play again</button><button class="btn ghost" id="home">Change topic</button></div>
+      <ul class="rev" id="rev"></ul>
+    </div>
+  </section>
+</main>
+
+<script>
+const BANK=[
+{t:'single',c:'Science',q:'Which planet has the shortest year?',o:['Mercury','Venus','Mars','Jupiter'],a:0,e:'Mercury orbits the Sun in about 88 Earth days.'},
+{t:'multi',c:'Science',q:'Select all the noble gases.',o:['Helium','Nitrogen','Neon','Argon'],a:[0,2,3],e:'Nitrogen is a diatomic gas that makes up most of the air, but it is not a noble gas.'},
+{t:'tf',c:'Science',q:'Sound travels faster in water than in air.',a:true,e:'Sound moves roughly four times faster in water.'},
+{t:'fill',c:'Science',q:'The chemical symbol for gold is ____.',a:['au'],e:'Au comes from the Latin word aurum.'},
+{t:'single',c:'Geography',q:'What is the capital of Australia?',o:['Sydney','Melbourne','Canberra','Perth'],a:2,e:'Canberra was purpose-built as the capital.'},
+{t:'multi',c:'Geography',q:'Select all countries that are landlocked.',o:['Nepal','Peru','Switzerland','Bolivia'],a:[0,2,3],e:'Peru has a Pacific coastline.'},
+{t:'tf',c:'Geography',q:'The Nile is the longest river in Africa.',a:true,e:'It runs about 6,650 km to the Mediterranean.'},
+{t:'fill',c:'Geography',q:'Mount ____ is the highest mountain above sea level.',a:['everest'],e:'Everest stands at about 8,849 m.'},
+{t:'single',c:'Tech',q:'What does CPU stand for?',o:['Central Processing Unit','Computer Personal Unit','Central Program Utility','Core Power Unit'],a:0,e:'The CPU runs the instructions of a program.'},
+{t:'multi',c:'Tech',q:'Select all programming languages.',o:['Python','HTML','Rust','Go'],a:[0,2,3],e:'HTML is a markup language, not a programming language.'},
+{t:'tf',c:'Tech',q:'The first website went online in the 1970s.',a:false,e:'Tim Berners-Lee published the first website in 1991.'},
+{t:'fill',c:'Tech',q:'The HTTP status code for "Not Found" is ____.',a:['404'],e:'404 means the server cannot find the requested page.'},
+{t:'single',c:'History',q:'Who was the first person to walk on the Moon?',o:['Buzz Aldrin','Neil Armstrong','Yuri Gagarin','Michael Collins'],a:1,e:'Armstrong stepped out of Apollo 11 in July 1969.'},
+{t:'multi',c:'History',q:'Select all ancient wonders that were in Egypt.',o:['Great Pyramid of Giza','Hanging Gardens','Lighthouse of Alexandria','Colossus of Rhodes'],a:[0,2],e:'The other two stood in Babylon and Rhodes.'},
+{t:'tf',c:'History',q:'India became independent in 1947.',a:true,e:'Independence came on 15 August 1947.'},
+{t:'fill',c:'History',q:'The Great Wall is located in ____.',a:['china'],e:'Its sections stretch across northern China.'}
+];
+const CATS=['Mixed',...new Set(BANK.map(x=>x.c))];
+const $=id=>document.getElementById(id);
+let cat='Mixed',qs=[],i=0,score=0,sel=new Set(),done=false,log=[];
+const KIND={single:'Single choice',multi:'Multi select: pick all that apply',tf:'True or false',fill:'Fill in the blank'};
+
+function shuffle(a){a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+function show(id){['start','play','end'].forEach(s=>$(s).classList.toggle('hidden',s!==id));window.scrollTo(0,0)}
+
+function buildPicker(){
+  $('picker').innerHTML='';
+  CATS.forEach(c=>{const b=document.createElement('button');b.className='chip';b.textContent=c;b.setAttribute('aria-pressed',c===cat);
+    b.onclick=()=>{cat=c;buildPicker()};$('picker').appendChild(b)});
+}
+function start(){
+  const pool=cat==='Mixed'?BANK:BANK.filter(x=>x.c===cat);
+  qs=shuffle(pool).slice(0,10).map(q=>{
+    if(q.o){const idx=shuffle(q.o.map((_,n)=>n));const o=idx.map(n=>q.o[n]);
+      const a=Array.isArray(q.a)?q.a.map(n=>idx.indexOf(n)):idx.indexOf(q.a);return{...q,o,a}}
+    return q});
+  i=0;score=0;log=[];$('pts').textContent=0;show('play');render();
+}
+function render(){
+  const q=qs[i];sel=new Set();done=false;
+  $('count').textContent=`Question ${i+1} of ${qs.length}`;
+  $('prog').style.width=(i/qs.length*100)+'%';
+  $('kind').textContent=KIND[q.t];$('q').textContent=q.q;$('fb').innerHTML='';
+  $('check').classList.remove('hidden');$('check').disabled=true;$('next').classList.add('hidden');
+  $('next').textContent=i===qs.length-1?'See results':'Next question';
+  const body=$('body');body.innerHTML='';
+  if(q.t==='fill'){
+    const inp=document.createElement('input');inp.className='fill';inp.id='fillin';inp.placeholder='Type your answer';inp.autocomplete='off';
+    inp.setAttribute('aria-label','Your answer');
+    inp.oninput=()=>{$('check').disabled=!inp.value.trim()};
+    inp.onkeydown=e=>{if(e.key==='Enter'&&!$('check').disabled)check()};
+    body.appendChild(inp);inp.focus();return;
+  }
+  const opts=q.t==='tf'?['True','False']:q.o;
+  opts.forEach((t,n)=>{
+    const b=document.createElement('button');b.className='opt'+(q.t==='multi'?' multi':'');b.dataset.n=n;
+    b.innerHTML='<span class="mk"></span><span></span>';b.lastChild.textContent=t;
+    b.onclick=()=>pick(n,b);body.appendChild(b);
+  });
+}
+function pick(n,b){
+  if(done)return;const q=qs[i];
+  if(q.t==='multi'){sel.has(n)?sel.delete(n):sel.add(n)}else{sel=new Set([n])}
+  document.querySelectorAll('.opt').forEach(o=>{const on=sel.has(+o.dataset.n);o.classList.toggle('sel',on);o.querySelector('.mk').textContent=on&&q.t==='multi'?'✓':''});
+  $('check').disabled=sel.size===0;
+}
+function check(){
+  if(done)return;done=true;const q=qs[i];let right=false,given='';
+  if(q.t==='fill'){
+    const inp=$('fillin');given=inp.value.trim();right=q.a.includes(given.toLowerCase());
+    inp.classList.add(right?'ok':'bad');inp.disabled=true;
+  }else{
+    const corr=q.t==='tf'?new Set([q.a?0:1]):new Set(Array.isArray(q.a)?q.a:[q.a]);
+    right=sel.size===corr.size&&[...sel].every(n=>corr.has(n));
+    const opts=q.t==='tf'?['True','False']:q.o;
+    given=[...sel].map(n=>opts[n]).join(', ');
+    document.querySelectorAll('.opt').forEach(o=>{const n=+o.dataset.n;o.disabled=true;o.classList.remove('sel');
+      if(corr.has(n)){o.classList.add('ok');o.querySelector('.mk').textContent='✓'}
+      else if(sel.has(n)){o.classList.add('bad');o.querySelector('.mk').textContent='✕'}});
+  }
+  if(right){score++;$('pts').textContent=score}
+  const ans=q.t==='fill'?q.a[0]:q.t==='tf'?(q.a?'True':'False'):(Array.isArray(q.a)?q.a.map(n=>q.o[n]).join(', '):q.o[q.a]);
+  log.push({q:q.q,ok:right,given,ans});
+  $('fb').innerHTML=`<div class="fb ${right?'ok':'bad'}"><b>${right?'Correct':'Not quite'}</b>${right?'':'Answer: '+esc(ans)+'. '}${esc(q.e)}</div>`;
+  $('check').classList.add('hidden');$('next').classList.remove('hidden');$('next').focus();
+}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function next(){i++;i>=qs.length?finish():render()}
+function finish(){
+  $('prog').style.width='100%';show('end');
+  $('final').textContent=score;$('total').textContent=qs.length;
+  const p=score/qs.length;
+  $('verdict').textContent=p===1?'Perfect score.':p>=.7?'Strong result.':p>=.4?'Good effort. Try again to beat it.':'Keep practising and try again.';
+  $('rev').innerHTML=log.map(l=>`<li><div class="d ${l.ok?'ok':'bad'}">${l.ok?'✓':'✕'}</div><div>${esc(l.q)}<span>${l.ok?'You answered: '+esc(l.given):'You answered: '+esc(l.given||'(blank)')+'. Correct: '+esc(l.ans)}</span></div></li>`).join('');
+}
+$('go').onclick=start;$('check').onclick=check;$('next').onclick=next;
+$('again').onclick=start;$('home').onclick=()=>{buildPicker();show('start')};
+buildPicker();
+</script>
+</body>
+</html>
